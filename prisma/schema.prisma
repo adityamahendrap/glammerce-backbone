@@ -173,8 +173,8 @@ model CartItem {
   updated_at             DateTime @updatedAt
 
   product_combination ProductCombination? @relation(fields: [product_combination_id], references: [id])
-  shopping_session    ShoppingSession     @relation(fields: [shopping_sessions_id], references: [id])
-  product             Product             @relation(fields: [product_id], references: [id])
+  shopping_session    ShoppingSession?    @relation(fields: [shopping_sessions_id], references: [id])
+  product             Product?            @relation(fields: [product_id], references: [id])
 
   @@map("carts")
 }

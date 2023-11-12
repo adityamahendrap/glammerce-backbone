@@ -6,6 +6,7 @@ import error from "./middleware/error.js";
 import winston from "winston";
 import authHandler from "./handler/auth.handler.js";
 import productHandler from "./handler/product.handler.js";
+import cartHandler from "./handler/cart.handler.js";
 
 const { combine, timestamp, printf, colorize, align } = winston.format;
 
@@ -16,15 +17,13 @@ const domain = process.env.DOMAIN || "http://localhost:" + port;
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN,
   domain,
-  process.env.FRONTEND_ORIGIN + "/sign-in",
 ];
 
 const corsOptions = {
-  // origin: process.env.NODE_ENV === "production" ? allowedOrigins : "*",
   origin: allowedOrigins,
   methods: "GET,PUT,POST,DELETE",
-  allowedHeaders: "Content-Type,Authorization",
-  credentials: true, // when credentials are true, origin cannot be set to "*"
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 };
 
 const logger = winston.createLogger({
@@ -40,15 +39,15 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-app.use(cors(corsOptions));
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Credentials", true);
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
-});
+app.use(cors(process.env.NODE_ENV === "production" ? corsOptions : null));
+// app.use((req, res, next) => {
+//   res.header("Access-Control-Allow-Credentials", true);
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   next();
+// });
 app.use(express.json());
 app.use((req, res, next) => {
   logger.info(`Received request: ${req.method} ${req.url}`);
@@ -56,6 +55,7 @@ app.use((req, res, next) => {
 });
 app.use("/api/auth", authHandler);
 app.use("/api/products", productHandler);
+app.use("/api/carts", cartHandler);
 app.use(error);
 
 app.listen(port, () => {

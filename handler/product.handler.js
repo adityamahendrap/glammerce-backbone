@@ -8,7 +8,7 @@ router.get("/", async (req, res, next) => {
     const products = await prisma.product.findMany();
     res.status(200).json({
       message: "Products retrieved",
-      data: products,
+      payload: products,
     });
   } catch (error) {
     next(error);
@@ -32,7 +32,7 @@ router.get("/:id/:slug", async (req, res, next) => {
   });
   res.status(200).json({
     message: "Product retrieved",
-    data: product,
+    payload: product,
   });
 });
 

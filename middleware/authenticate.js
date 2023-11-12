@@ -1,5 +1,7 @@
-import prisma from "../prisma/prisma.js";
+import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
+import ResponseError from "../helper/response_erorr.js";
+const prisma = new PrismaClient();
 
 export default async (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
@@ -15,7 +17,6 @@ export default async (req, res, next) => {
       select: {
         id: true,
         email: true,
-        is_google: true,
       },
     });
     if (!user) {

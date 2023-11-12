@@ -5,8 +5,34 @@ import jwt from "jsonwebtoken";
 import ResponseError from "../helper/response_erorr.js";
 import validateDto from "../middleware/validateDto.js";
 import { loginDto, registerDto } from "../dto/auth.dto.js";
+import authenticate from "../middleware/authenticate.js";
 const router = Router();
 const prisma = new PrismaClient();
+
+router.get("/me", authenticate, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        email_verified_at: true,
+        phone_number: true,
+        provider: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    res.status(200).json({
+      message: "User retrieved",
+      payload: user,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post("/register", validateDto(registerDto), async (req, res, next) => {
   const { name, email, password, confirm_password } = req.body;
@@ -27,7 +53,7 @@ router.post("/register", validateDto(registerDto), async (req, res, next) => {
 
     res.status(201).json({
       message: "User registered",
-      data: {
+      payload: {
         id: newUser.id,
         name: newUser.name,
         email: newUser.email,
@@ -58,16 +84,17 @@ router.post("/login", validateDto(loginDto), async (req, res, next) => {
       expiresIn: "365d",
     });
 
-    res.cookie("token", token, {
-      expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-    });
+    // res.cookie("token", token, {
+    //   expires: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+    //   httpOnly: false,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: "none",
+    // });
 
     res.status(200).json({
       message: "Login success",
-      data: {
+      payload: {
+        token,
         user: {
           id: user.id,
           name: user.name,
